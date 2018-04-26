@@ -1,4 +1,58 @@
 
+aesEncrypt = function(e) {
+    var a = CryptoJS.MD5("login.189.cn");
+    var c = CryptoJS.enc.Utf8.parse(a);
+    var b = CryptoJS.enc.Utf8.parse("1234567812345678");
+    var d = CryptoJS.AES.encrypt(e, c, {
+        iv: b
+    });
+    return d + ""
+}
+
+aesDecrypt = function(e) {
+    var b = CryptoJS.MD5("login.189.cn");
+    var d = CryptoJS.enc.Utf8.parse(b);
+    var c = CryptoJS.enc.Utf8.parse("1234567812345678");
+    var a = CryptoJS.AES.decrypt(e, d, {
+        iv: c
+    }).toString(CryptoJS.enc.Utf8);
+    return a
+}
+
+// valAesEncrypt = function() {
+//     return aesEncrypt(this.val())
+// }
+//
+// valAesDecrypt = function() {
+//     return aesDecrypt(this.val())
+// }
+
+
+valAesEncryptSet = function(e){
+    var d = e || '';
+    var a, c;
+    try {
+        a = aesDecrypt(d);
+        if (a != "") {
+            c = aesEncrypt(a);
+            if (c != d) {
+                a = ""
+            }
+        }
+    } catch (b) {
+        a = ""
+    }
+    if (a == "") {
+        c = aesEncrypt(d)
+    }
+    return c
+}
+
+
+
+
+
+
 var CryptoJS = CryptoJS || function(o, e) {
     var h = {}
       , g = h.lib = {}

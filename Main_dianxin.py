@@ -82,7 +82,7 @@ def _get_captcha_img():
     img.show()
 
 
-def _login():
+def _login(phone_num, password, captcha_num):
     session.headers.update({
         'Cache-Control': 'max-age=0',
         'Upgrade-Insecure-Requests': '1',
@@ -90,14 +90,14 @@ def _login():
     })
     _login_url = 'http://login.189.cn/web/login'
     post_param = {
-        'Account': '17342071372',
+        'Account': phone_num,
         'UType': '201',
         'ProvinceID': '12',
         'AreaCode': None,
         'CityNo': None,
         'RandomFlag': '1',
-        'Password': 'NrX37cwtBJ4HzWheMlaUMQ==',
-        'Captcha': 'j4j4',
+        'Password': _get_pwd(password),
+        'Captcha': captcha_num,
     }
 
 
@@ -117,24 +117,23 @@ def _get_pwd(pwd):
     return ctx.call('valAesEncryptSet', pwd)
 
 
-def get_runntime(path):
-    """
-    :param path: 加密js的路径,注意js中不要使用中文！估计是pyexecjs处理中文还有一些问题
-    :return: 编译后的js环境，不清楚pyexecjs这个库的用法的请在github上查看相关文档
-    """
-    phantom = execjs.get('PhantomJS')  # 这里必须为phantomjs设置环境变量，否则可以写phantomjs的具体路径
-    with open(path, 'r') as f:
-        source = f.read()
-    return phantom.compile(source)
+# def get_runntime(path):
+#     """
+#     :param path: 加密js的路径,注意js中不要使用中文！估计是pyexecjs处理中文还有一些问题
+#     :return: 编译后的js环境，不清楚pyexecjs这个库的用法的请在github上查看相关文档
+#     """
+#     phantom = execjs.get('PhantomJS')  # 这里必须为phantomjs设置环境变量，否则可以写phantomjs的具体路径
+#     with open(path, 'r') as f:
+#         source = f.read()
+#     return phantom.compile(source)
+#
+# def get_encodename(pwd, runntime):
+#     return runntime.call('valAesEncryptSet', pwd)
 
-def get_encodename(pwd, runntime):
-    return runntime.call('valAesEncryptSet', pwd)
-
-runntime = get_runntime('ase2.js')
-su = get_encodename('123456', runntime)
+# runntime = get_runntime('ase.js')
+# su = get_encodename('123456', runntime)
 # print(_check_phone_num())
 # print(_get_intface_captcha())
 # # print(_send_message())
 # _get_captcha_img()
-
-print('su',su)
+# print(_get_pwd('123456'))
