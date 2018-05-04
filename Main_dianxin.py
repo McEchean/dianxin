@@ -138,24 +138,52 @@ class Login_dianxin(object):
             'Captcha': captcha_num,
         }
         _login_resp = self.session.post(url=_login_url, data=post_param, headers=self.session.headers,
-                                        allow_redirects=True)
+                                        allow_redirects=False)
         logging.info('_login_resp: %s' % _login_resp.status_code)
-
-        sel = Selector(_login_resp)
-        return sel.css('.fl.tc.lh26.w67 .a_img ::attr(href)').extract()[4]
-        # match_http = re.match(r'.*?PlatNO=(\d+).*?ResultCode=(\d+).*?Ticket=(\w+).*?TxID=(\w+).*',
-        #                       _login_resp.text, re.DOTALL).group(1, 2, 3, 4)
-        # match_http = _login_resp.headers.get('Location', '')
-        # return match_http
+        return _login_resp.headers['Location']
 
     def _get_ecsdo(self, match_http):
         self.session.headers.update({
             'Host': 'www.189.cn',
         })
-        _get_ecsdo_url = 'http://www.189.cn/login/ecs.do?PlatNO={0}&ResultCode={1}&Ticket={2}&TxID={3}'.format(
-            *match_http)
-        _get_ecsdo_resp = self.session.get(url=_get_ecsdo_url, headers=self.session.headers)
+        _get_ecsdo_url = match_http
+        _get_ecsdo_resp = self.session.get(url=_get_ecsdo_url, headers=self.session.headers, allow_redirects=False)
         logging.info('_get_ecsdo_resp: %s' % _get_ecsdo_resp.status_code)
+        _get_main_url = _get_ecsdo_resp.headers['Location']
+        _get_main_resp = self.session.get(url=_get_main_url, headers=self.session.headers)
+        logging.info('_get_main_resp: %s' % _get_main_resp.status_code)
+        sel = Selector(_get_main_resp)
+        return sel.css('.down_ul_a.f12.bb1_a.pt10.h.ov .span_font_a a::attr(href)').extract()[56]
+
+    def _get_login_json(self):
+        _get_login_json_url = 'http://www.189.cn/login/ttfaces.do?channel=WEB&locationType=1'
+        self.session.headers.update({
+            'Host': 'www.189.cn',
+            'Connection': 'keep-alive',
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'X-Requested-With': 'XMLHttpRequest',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/65.0.3325.181 Safari/537.36',
+            'Referer': 'http://www.189.cn/zj/',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.9',
+        })
+        _get_login_json_resp = self.session.get(url=_get_login_json_url, headers=self.session.headers)
+        logging.info('_get_login_json_resp: %s' % _get_login_json_resp.text)
+
+        _get_login_info_url = 'http://www.189.cn/login/index.do'
+        self.session.headers.update({
+            'Referer': 'http://www.189.cn/html/login/right.html',
+        })
+        _get_login_info_resp = self.session.get(url=_get_login_info_url, headers=self.session.headers)
+        logging.info('_get_login_info_resp: %s' % _get_login_info_resp.text)
+
+        _get_login_info_url2 = 'http://www.189.cn/login/index.do'
+        self.session.headers.update({
+            'Referer': 'http://www.189.cn/html/login/index.html',
+        })
+        _get_login_info_resp2 = self.session.get(url=_get_login_info_url2, headers=self.session.headers)
+        logging.info('_get_login_info_resp2: %s' % _get_login_info_resp2.text)
 
     def _get_js(self):
         f = open("ase.js", 'r', encoding='utf-8')
@@ -188,8 +216,10 @@ class Login_dianxin(object):
         else:
             password = input('请输入服务密码：')
         self._check_pwd_valdate(phone_num, password, isRandom)
-        return self._login(phone_num, password, captcha_num, pid, isRandom)
-        # _get_ecsdo(match_http)
+        x = self._login(phone_num, password, captcha_num, pid, isRandom)
+        y = self._get_ecsdo(x)
+        self._get_login_json()
+        return y
 
 
 if __name__ == '__main__':
